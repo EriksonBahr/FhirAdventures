@@ -2,16 +2,21 @@
 {
     using FhirPatientRegistration.Core;
     using Hl7.Fhir.Serialization;
+    using Microsoft.Extensions.Http.Logging;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Linq;
+    using System.Net.Http;
 
     class Program
     {
         static void Main(string[] args)
         {
-            var input = String.Empty;
-            var repo = new FhirRepository("http://hapi.fhir.org/baseR4");
+            ILogger logger = BuildLogger(LogLevel.Information);
+            LoggingHttpMessageHandler handler = BuildLoggingHttpHandler(logger);
+            var repo = new FhirRepository("http://hapi.fhir.org/baseR4", handler);
 
+            string input;
             do
             {
                 Console.WriteLine("Search for a patient (or Q to quit): ");
@@ -25,8 +30,25 @@
 
 
             } while (input.ToLower() != "q");
+        }
 
-            
+        private static LoggingHttpMessageHandler BuildLoggingHttpHandler(ILogger logger)
+        {
+            var handler = new LoggingHttpMessageHandler(logger);
+            handler.InnerHandler = new HttpClientHandler();
+            return handler;
+        }
+
+        private static ILogger BuildLogger(LogLevel loglevel)
+        {
+            using var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("*", loglevel)
+                    .AddConsole();
+            });
+
+            return loggerFactory.CreateLogger<Program>();
         }
     }
 }

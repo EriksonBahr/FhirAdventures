@@ -3,6 +3,7 @@ using Hl7.Fhir.Rest;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 
 namespace FhirPatientRegistration.Core
 {
@@ -15,6 +16,14 @@ namespace FhirPatientRegistration.Core
         {
             this.v = v;
             this.fhirClient = new FhirClient(v);
+            fhirClient.PreferredFormat = ResourceFormat.Json;
+            fhirClient.UseFormatParam = true;
+        }
+
+        public FhirRepository(string v, DelegatingHandler delegatingHandler)
+        {
+            this.v = v;
+            this.fhirClient = new FhirClient(v, null, delegatingHandler);
             fhirClient.PreferredFormat = ResourceFormat.Json;
             fhirClient.UseFormatParam = true;
         }
